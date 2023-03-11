@@ -12,7 +12,7 @@ const authenticate = require("./authenticate");
 //const findOrCreate = require("mongoose-findorcreate");
 const PORT = 3000;
 const userRouter = require("./routes/users")
-const uploadRoute = require("./routes/uploadpdf")
+const uploadRoute = require("./routes/uploadRoutes")
 
 const app = express();
 
