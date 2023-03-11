@@ -2,6 +2,9 @@ const express = require('express')
 const uploadRouter = express.Router()
 const {pdfs, admissions} = require("../models/uploadModels")
 
+// @desc    Upload new pdf  
+// @route   POST /upload/uploadPdf
+// @access  Admin
 uploadRouter.post('/uploadPdf', async (req, res)=>{
   const {department, url, courseCode, courseTitle, title, size, level, thumbnail, keywords } = req.body
 
@@ -21,16 +24,9 @@ uploadRouter.post('/uploadPdf', async (req, res)=>{
   }
 })
 
-uploadRouter.get("/uploadAdmission", async (req, res)=>{
-  const allAdmissionInfo = await admissions.find()
-
-  if(allAdmissionInfo){
-   res.status(200).json(allAdmissionInfo)
-  }else{
-    res.status(500).json({mesage: "internal server error"})
-  }
-})
-
+// @desc    Upload new Admission Info  
+// @route   POST /upload/uploadAdmission
+// @access  Admin
 uploadRouter.post("/uploadAdmission", async (req, res) => {
   const { title, body } = req.body
   
@@ -49,5 +45,18 @@ uploadRouter.post("/uploadAdmission", async (req, res) => {
     res.status(400).json({message: "admissionInfo not uploaded", error: `${err}`})
   }
 })
+
+// @desc    Get all admission info  
+// @route   GET /upload/uploadAdmission
+// @access  Admin
+// uploadRouter.get("/uploadAdmission", async (req, res)=>{
+//   const allAdmissionInfo = await admissions.find()
+
+//   if(allAdmissionInfo){
+//    res.status(200).json(allAdmissionInfo)
+//   }else{
+//     res.status(500).json({mesage: "internal server error"})
+//   }
+// })
 
 module.exports = uploadRouter
