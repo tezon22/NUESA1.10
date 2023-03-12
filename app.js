@@ -12,13 +12,14 @@ const authenticate = require("./authenticate");
 //const findOrCreate = require("mongoose-findorcreate");
 const PORT = 3000;
 const userRouter = require("./routes/users")
+const uploadRoute = require("./routes/uploadRoutes")
 
 const app = express();
 
 //INITIALIZE
 app.use(logger("dev"));
 app.use(express.json());
-app.use(express.urlencoded({extended: false}));
+
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, "public")));
@@ -32,6 +33,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use("./users", userRouter);
+app.use("/upload", uploadRoute)
 
 //CONNECTIONS
 mongoose.set('strictQuery', true);
