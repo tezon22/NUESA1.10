@@ -4,46 +4,29 @@ const passport = require("passport");
 exports.register = (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
+    const firstName = req.body.firstName;
 
-    User.register(new User({username: username}), password, (err, user) => {
-        if(err){
+    //Register a new user using the local strategy
+    //Passportjs requires 3 objects, the first and second are the user details while the third is the callback function
+    //if the user has another identifier, enclose them in an object paranthesis
+    User.register(new User({username: username, firstName}), password, (err) => {
+        if(err) {
             res.statusCode = 500;
-            res.json({err: err});
-            req.send("try again");
-            //res.redirect("/register");
-        }else{
+            //res.send("try again");
+            res.json({err: err.message});
+        } 
+        else{
             passport.authenticate("local")(req, res, () => {
                 res.statusCode = 200;
                 res.setHeader("Content-Type", "application/json");
-                //res.send("AUTHENTICATED");
                 res.json({success: true, message: "Registration Successful"});
-                //res.redirect("/secrets");
+                res.redirect("/login");
             })
         }
     });
 }
 
 exports.login = (req, res, next) => {
-    /*const user = {
-        username: req.body.username,
-        password: req.body.password
-    };
-
-    req.login(user, function (err) {
-        if(err) {
-            res.statusCode = 500;
-           res.json({ err: err.message});
-           //res.redirect("/register");
-        }else {
-            passport.authenticate("local")(req, res, () => {
-              res.statusCode = 200;
-              res.setHeader("Content-Type", "application/json");
-              res.json({ success: true, message: "You are successfully logged in" });
-              //res.send("AUTHENTICATED USER SIGNED IN");
-              //res.redirect("/secrets");
-            });
-        }
-    });*/
     passport.authenticate("local", (err, user, info) => {
         if(err){
             res.statusCode = 500;
@@ -72,7 +55,6 @@ exports.logout = (req, res) => {
         }else{
             res.statusCode = 200;
             res.setHeader("Content-Type", "application/json");
-            //res.send("AUTHENTICATED");
             res.json({success: true, message: "Logout Successful"});
         }
     });
@@ -87,5 +69,76 @@ exports.googleLoginHome = (req, res) => {
     function(req, res) {
        //Successful authentication, redirect home.
        res.send("google auth");
+    }
+}
+
+exports.getUsers = async (req, res) => {
+    try {
+        const users = await User.find();
+        res.json({users});
+    } catch (error) {
+        res.status(500).send(error);
+    }
+}
+
+exports.deleteUsers = async (req, res) => {
+    try {
+        const user = await User.deleteMany();
+        if (!user) {
+          return res.status(404).send();
+        }
+        res.send("Users deleted");
+    } catch (error) {
+        res.status(500).send(error);
+    }
+}
+
+/////////////////SPECIFIC USERS////////////////////////////////
+exports.getUser = async (req, res) => {
+    try {
+        //Find the user by its given ID
+        const user = await User.findById(req.params.id);
+        if (!user) {
+          return res.status(404).send();
+        }
+        res.send({user});
+    } catch (error) {
+        res.status(500).send(error);
+    }
+}
+
+exports.deleteUser = async (req, res) => {
+    try {
+        //Find and delete a user by its given ID
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) {
+          return res.status(404).send();
+        }
+        res.send("User deleted");
+    } catch (error) {
+        res.status(500).send(error);
+    }
+}
+
+
+exports.promoteUser = async (req, res, next) => {
+    try {
+        const currentUser = req.user;
+        const targetUser = await User.findById(req.params.userId);
+
+        //check if the current user is a superuser
+        if(currentUser.role !== "superuser") {
+            return res.status(403).send("Only superusers can promote users");
+        }
+
+        //update the target user's role to an admin user
+        targetUser.role = "admin";
+
+        await targetUser.save();
+
+        res.send("User promoted successfully");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Internal Server Error");
     }
 }

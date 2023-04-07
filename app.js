@@ -4,8 +4,10 @@ const bodyParser = require("body-parser");
 const path = require("path");
 const mongoose = require("mongoose");
 const logger = require("morgan");
+const cors = require("cors");
 const session = require("express-session");
 const passport = require("passport");
+const flash = require("connect-flash");
 //const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 //const findOrCreate = require("mongoose-findorcreate");
@@ -14,6 +16,9 @@ const PORT = 3000;
 
 //ROUTES
 const userRoutes = require("./routes/users");
+const postRoutes = require("./routes/postRouter");
+const commentRoutes = require("./routes/commentRouter");
+const resetRoutes = require("./routes/resetPasswordRouter");
 
 
 const app = express();
@@ -30,16 +35,27 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
+
+app.use(flash());
+app.use(cors());
 app.use(passport.initialize());
 app.use(passport.session());
 
 
 //ROUTES
 app.use("", userRoutes);
+app.use("", postRoutes);
+app.use("/posts", commentRoutes);
+app.use("", resetRoutes);
+
+//Unhandled routes
+app.all("*", (req,res) => {
+    res.status(404).send("Sorry, the requested route was not found");
+});
 
 
 //MONGODB CONNECTION
-mongoose.set('strictQuery', true);
+mongoose.set("strictQuery", true);
 const url = "mongodb://127.0.0.1:27017/userDB";
 const connect = mongoose.connect(url, {useNewUrlParser: true});
 connect
